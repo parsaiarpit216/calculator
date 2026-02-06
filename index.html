@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>हिंदी कैलकुलेटर</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f6fa;
+        }
+
+        .calculator {
+            background-color: var(--dark);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 320px;
+        }
+
+        #display-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: right;
+            min-height: 80px;
+        }
+
+        #screen {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        #hindi-result {
+            font-size: 16px;
+            color: var(--primary);
+            font-weight: bold;
+            word-wrap: break-word;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover { opacity: 0.8; }
+
+        .num { background-color: #ecf0f1; color: #2c3e50; }
+        .op { background-color: #f39c12; color: white; }
+        .special { background-color: #e74c3c; color: white; }
+        .equal { background-color: #27ae60; color: white; grid-column: span 2; }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <div id="display-container">
+        <div id="screen">0</div>
+        <div id="hindi-result">शून्य</div>
+    </div>
+    <div class="buttons">
+        <button class="special" onclick="clearScreen()">C</button>
+        <button class="special" onclick="deleteLast()">⌫</button>
+        <button class="op" onclick="append('/')">÷</button>
+        <button class="op" onclick="append('*')">×</button>
+        
+        <button class="num" onclick="append('7')">7</button>
+        <button class="num" onclick="append('8')">8</button>
+        <button class="num" onclick="append('9')">9</button>
+        <button class="op" onclick="append('-')">-</button>
+        
+        <button class="num" onclick="append('4')">4</button>
+        <button class="num" onclick="append('5')">5</button>
+        <button class="num" onclick="append('6')">6</button>
+        <button class="op" onclick="append('+')">+</button>
+        
+        <button class="num" onclick="append('1')">1</button>
+        <button class="num" onclick="append('2')">2</button>
+        <button class="num" onclick="append('3')">3</button>
+        <button class="num" onclick="append('.')">.</button>
+        
+        <button class="num" onclick="append('0')">0</button>
+        <button class="equal" onclick="calculate()">बराबर (=)</button>
+    </div>
+</div>
+
+<script>
+    let currentInput = "";
+    const hindiDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+    function append(value) {
+        currentInput += value;
+        updateDisplay();
+    }
+
+    function clearScreen() {
+        currentInput = "";
+        updateDisplay("0", "शून्य");
+    }
+
+    function deleteLast() {
+        currentInput = currentInput.slice(0, -1);
+        updateDisplay();
+    }
+
+    function updateDisplay(customVal, customHindi) {
+        document.getElementById('screen').innerText = customVal || currentInput || "0";
+        if (customHindi) {
+            document.getElementById('hindi-result').innerText = customHindi;
+        }
+    }
+
+    function toHindiDigits(num) {
+        return num.toString().split('').map(d => isNaN(d) ? d : hindiDigits[d] || d).join('');
+    }
+
+    function calculate() {
+        try {
+            // Evaluates the math expression
+            let result = eval(currentInput);
+            
+            if (result === undefined) return;
+
+            // Simple number to Hindi word converter (supports basic range)
+            let resultInHindi = convertToHindiWords(result);
+            let devanagariResult = toHindiDigits(result);
+
+            document.getElementById('screen').innerText = devanagariResult;
+            document.getElementById('hindi-result').innerText = resultInHindi;
+            
+            currentInput = result.toString();
+        } catch (error) {
+            document.getElementById('hindi-result').innerText = "त्रुटि (Error)";
+        }
+    }
+
+    function convertToHindiWords(n) {
+        if (n === 0) return "शून्य";
+        if (isNaN(n)) return "अमान्य";
+        
+        const ones = ['', 'एक', 'दो', 'तीन', 'चार', 'पाँच', 'छह', 'सात', 'आठ', 'नौ', 'दस', 
+                      'ग्यारह', 'बारह', 'तेरह', 'चौदह', 'पंद्रह', 'सोलह', 'सत्रह', 'अठारह', 'उन्नीस'];
+        const tens = ['', '', 'बीस', 'तीस', 'चालीस', 'पचास', 'साठ', 'सत्तर', 'अस्सी', 'नब्बे'];
+
+        if (n < 0) return "ऋण " + convertToHindiWords(Math.abs(n));
+        
+        let words = "";
+        if (n < 20) words = ones[Math.floor(n)];
+        else if (n < 100) words = tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + ones[n % 10] : "");
+        else words = n.toString(); // For very large numbers, we keep it simple or expand logic
+
+        return words;
+    }
+</script>
+
+</body>
+</html>
